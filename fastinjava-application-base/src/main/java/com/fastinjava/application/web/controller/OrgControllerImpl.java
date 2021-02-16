@@ -4,6 +4,9 @@ import com.fastinjava.application.service.OrgService;
 import com.fastinjava.framework.baseapplication.api.OrgController;
 import com.fastinjava.framework.baseapplication.vo.OrgListReqVO;
 import com.fastinjava.framework.baseapplication.vo.OrgListResVO;
+import com.fastinjava.framework.baseapplication.vo.OrgTreeReqVO;
+import com.fastinjava.framework.baseapplication.vo.OrgUpdateReqVO;
+import com.fastinjava.framework.common.dto.Node;
 import com.fastinjava.framework.common.res.JsonResult;
 import com.fastinjava.framework.common.res.PageResult;
 import io.swagger.annotations.Api;
@@ -14,8 +17,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import java.util.List;
 
-@Api(value = "组织管理",tags = {"组织管理api"})
+@Api(value = "组织管理", tags = {"组织管理api"})
 @RestController
 @RequestMapping("/org")
 public class OrgControllerImpl implements OrgController {
@@ -33,7 +37,22 @@ public class OrgControllerImpl implements OrgController {
     @PostMapping("/list")
     @Override
     public JsonResult<PageResult<OrgListResVO>> list(@RequestBody OrgListReqVO orgListReqVO) {
-        PageResult<OrgListResVO> pageResult = orgService.list(orgListReqVO);
-        return JsonResult.<PageResult<OrgListResVO>>builder().success(pageResult).build();
+        return JsonResult.<PageResult<OrgListResVO>>builder().success(orgService.list(orgListReqVO)).build();
+    }
+
+    @ApiOperation("组织列表(树形视图数据)")
+    @PostMapping("/tree")
+    @Override
+    public JsonResult<List<Node>> tree(@RequestBody OrgTreeReqVO orgTreeReqVO) {
+        return JsonResult.<List<Node>>builder().success(orgService.tree(orgTreeReqVO)).build();
+    }
+
+    @PostMapping("/update")
+    @Override
+    public JsonResult<Boolean> update(@RequestBody OrgUpdateReqVO orgUpdateReqVO) {
+        Boolean result = orgService.update(orgUpdateReqVO);
+        return result
+                ? JsonResult.<Boolean>builder().success(true).build() :
+                JsonResult.<Boolean>builder().failure("删除失败").build();
     }
 }
