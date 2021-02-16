@@ -75,9 +75,7 @@ public class OrgServiceImpl implements OrgService {
 
     @Override
     public Boolean update(OrgUpdateReqVO orgUpdateReqVO) {
-        OrganizationUpdateDTO organizationUpdateDTO = new OrganizationUpdateDTO();
-        organizationUpdateDTO.setOrgId(orgUpdateReqVO.getOrgId());
-        orgUpdateReqVO.setDeleteFlag("1");
+        OrganizationUpdateDTO organizationUpdateDTO = orgConvert.orgUpdateReqVO2OrganizationUpdateDTO(orgUpdateReqVO);
         ResultDTO<Boolean> resultDTO = orgFeginClient.update(organizationUpdateDTO);
         Assert.isTrue(resultDTO.getSuccess());
         return resultDTO.getSuccess();

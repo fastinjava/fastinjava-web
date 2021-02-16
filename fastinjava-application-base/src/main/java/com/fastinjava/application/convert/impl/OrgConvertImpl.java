@@ -4,9 +4,11 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.fastdevelopinjava.framework.ucenter.api.dto.OrganizationDTO;
 import com.fastdevelopinjava.framework.ucenter.api.dto.OrganizationReqDTO;
+import com.fastdevelopinjava.framework.ucenter.api.dto.OrganizationUpdateDTO;
 import com.fastinjava.application.convert.OrgConvert;
 import com.fastinjava.framework.baseapplication.vo.OrgListReqVO;
 import com.fastinjava.framework.baseapplication.vo.OrgListResVO;
+import com.fastinjava.framework.baseapplication.vo.OrgUpdateReqVO;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -26,6 +28,10 @@ public class OrgConvertImpl implements OrgConvert {
         organizationReqDTO.setPageSize(orgListReqVO.getPageSize());
         if (ObjectUtil.isNotEmpty(orgListReqVO.getOrgId())) {
             organizationReqDTO.setOrgId(orgListReqVO.getOrgId());
+        }
+        if (ObjectUtil.isNotEmpty(orgListReqVO.getOrgPid()))
+        {
+            organizationReqDTO.setOrgPid(orgListReqVO.getOrgPid());
         }
         return organizationReqDTO;
     }
@@ -49,5 +55,25 @@ public class OrgConvertImpl implements OrgConvert {
         }
 
         return orgListResVO;
+    }
+
+    @Override
+    public OrganizationUpdateDTO orgUpdateReqVO2OrganizationUpdateDTO(OrgUpdateReqVO orgUpdateReqVO) {
+
+        if (ObjectUtil.isEmpty(orgUpdateReqVO))
+        {
+            return null;
+        }
+
+        OrganizationUpdateDTO organizationUpdateDTO = new OrganizationUpdateDTO();
+        if (ObjectUtil.isNotEmpty(orgUpdateReqVO.getOrgId()))
+        {
+            organizationUpdateDTO.setOrgId(orgUpdateReqVO.getOrgId());
+        }
+        if (ObjectUtil.isNotEmpty(orgUpdateReqVO.getDeleteFlag()))
+        {
+            organizationUpdateDTO.setDeleteFlag(orgUpdateReqVO.getDeleteFlag());
+        }
+        return organizationUpdateDTO;
     }
 }

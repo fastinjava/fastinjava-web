@@ -21,4 +21,7 @@ public interface OrgController {
      * @return
      */
     JsonResult<Boolean> update(OrgUpdateReqVO orgUpdateReqVO);
+
+    JsonResult<Boolean> insert(OrgInsertReqVO orgInsertReqVO);
+
 }

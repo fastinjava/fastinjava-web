@@ -9,6 +9,7 @@ import com.fastinjava.framework.baseapplication.vo.OrgUpdateReqVO;
 import com.fastinjava.framework.common.dto.Node;
 import com.fastinjava.framework.common.res.JsonResult;
 import com.fastinjava.framework.common.res.PageResult;
+import com.google.common.collect.Lists;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -44,7 +45,13 @@ public class OrgControllerImpl implements OrgController {
     @PostMapping("/tree")
     @Override
     public JsonResult<List<Node>> tree(@RequestBody OrgTreeReqVO orgTreeReqVO) {
-        return JsonResult.<List<Node>>builder().success(orgService.tree(orgTreeReqVO)).build();
+        List<Node> nodeList = orgService.tree(orgTreeReqVO);
+        Node node = new Node();
+        node.setChildren(nodeList);
+        node.setId("0");
+        node.setPid(null);
+        node.setLabel("顶级组织");
+        return JsonResult.<List<Node>>builder().success(Lists.newArrayList(node)).build();
     }
 
     @PostMapping("/update")
@@ -54,5 +61,14 @@ public class OrgControllerImpl implements OrgController {
         return result
                 ? JsonResult.<Boolean>builder().success(true).build() :
                 JsonResult.<Boolean>builder().failure("删除失败").build();
+    }
+
+    @PostMapping("/insert")
+    @Override
+    public JsonResult<Boolean> insert(@RequestBody OrgInsertReqVO orgInsertReqVO) {
+        Boolean result = orgService.insert(orgInsertReqVO);
+        return result
+                ? JsonResult.<Boolean>builder().success(true).build() :
+                JsonResult.<Boolean>builder().failure("新增失败").build();
     }
 }
