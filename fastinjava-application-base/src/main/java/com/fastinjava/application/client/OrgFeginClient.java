@@ -1,5 +1,6 @@
 package com.fastinjava.application.client;
 
+import com.fastdevelopinjava.framework.ucenter.api.dto.OrganizationCreateDTO;
 import com.fastdevelopinjava.framework.ucenter.api.dto.OrganizationDTO;
 import com.fastdevelopinjava.framework.ucenter.api.dto.OrganizationReqDTO;
 import com.fastdevelopinjava.framework.ucenter.api.dto.OrganizationUpdateDTO;
@@ -26,5 +27,9 @@ public interface OrgFeginClient {
 
     @PostMapping(value = "/update")
     ResultDTO<Boolean> update(@RequestBody OrganizationUpdateDTO organizationUpdateDTO);
+
+
+    @PostMapping("/insert")
+    ResultDTO<Boolean> insert(@RequestBody OrganizationCreateDTO organizationCreateDTO);
 
 }

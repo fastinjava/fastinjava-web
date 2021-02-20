@@ -4,6 +4,8 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
+import com.fastdevelopinjava.framework.ucenter.api.dto.OrganizationCreateDTO;
 import com.fastdevelopinjava.framework.ucenter.api.dto.OrganizationDTO;
 import com.fastdevelopinjava.framework.ucenter.api.dto.OrganizationReqDTO;
 import com.fastdevelopinjava.framework.ucenter.api.dto.OrganizationUpdateDTO;
@@ -13,10 +15,7 @@ import com.fastdevelopinjava.framework.ucenter.common.res.ResultDTO;
 import com.fastinjava.application.client.OrgFeginClient;
 import com.fastinjava.application.convert.OrgConvert;
 import com.fastinjava.application.service.OrgService;
-import com.fastinjava.framework.baseapplication.vo.OrgListReqVO;
-import com.fastinjava.framework.baseapplication.vo.OrgListResVO;
-import com.fastinjava.framework.baseapplication.vo.OrgTreeReqVO;
-import com.fastinjava.framework.baseapplication.vo.OrgUpdateReqVO;
+import com.fastinjava.framework.baseapplication.vo.*;
 import com.fastinjava.framework.common.dto.Node;
 import com.fastinjava.framework.common.res.PageResult;
 import org.springframework.stereotype.Service;
@@ -77,7 +76,17 @@ public class OrgServiceImpl implements OrgService {
     public Boolean update(OrgUpdateReqVO orgUpdateReqVO) {
         OrganizationUpdateDTO organizationUpdateDTO = orgConvert.orgUpdateReqVO2OrganizationUpdateDTO(orgUpdateReqVO);
         ResultDTO<Boolean> resultDTO = orgFeginClient.update(organizationUpdateDTO);
-        Assert.isTrue(resultDTO.getSuccess());
+        if (resultDTO.getSuccess()) {
+            return true;
+        } else {
+            throw new RuntimeException(StrUtil.format("{}", resultDTO.getMsg()));
+        }
+    }
+
+    @Override
+    public Boolean insert(OrgInsertReqVO orgInsertReqVO) {
+        OrganizationCreateDTO organizationCreateDTO = orgConvert.orgInsertReqVO2OrganizationCreateDTO(orgInsertReqVO);
+        ResultDTO<Boolean> resultDTO = orgFeginClient.insert(organizationCreateDTO);
         return resultDTO.getSuccess();
     }
 }
