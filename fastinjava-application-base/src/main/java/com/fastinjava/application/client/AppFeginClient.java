@@ -16,4 +16,8 @@ public interface AppFeginClient {
 
     @PostMapping("/insert")
     ResultDTO<Boolean> insert(@RequestBody ApplicationInsertDTO applicationInsertDTO);
+
+
+    @PostMapping(value = "/getOne", name = "获取应用详情")
+    public ResultDTO<ApplicationDTO> getOne(@RequestBody ApplicationReqDTO applicationReqDTO);
 }

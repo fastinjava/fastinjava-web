@@ -2,17 +2,26 @@ package com.fastinjava.application.convert.impl;
 
 
 import cn.hutool.core.bean.BeanUtil;
-import com.fastdevelopinjava.framework.system.api.dto.ApiInfoDTO;
-import com.fastdevelopinjava.framework.system.api.dto.ApiInfoInsertDTO;
-import com.fastdevelopinjava.framework.system.api.dto.ApiInfoReqDTO;
+import cn.hutool.core.date.DateUnit;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.ObjectUtil;
+import com.fastdevelopinjava.framework.system.api.dto.*;
+import com.fastdevelopinjava.framework.ucenter.common.res.ResultDTO;
+import com.fastinjava.application.client.AppFeginClient;
 import com.fastinjava.application.convert.ApiInfoConvert;
 import com.fastinjava.framework.baseapplication.vo.ApiInfoInsertVO;
 import com.fastinjava.framework.baseapplication.vo.ApiInfoListDetailVO;
 import com.fastinjava.framework.baseapplication.vo.ApiInfoReqVO;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
+
 @Component
 public class ApiInfoConvertImpl implements ApiInfoConvert {
+
+    @Resource
+    private AppFeginClient appFeginClient;
+
     @Override
     public ApiInfoReqDTO apiInfoReqVO2ApiInfoReqDTO(ApiInfoReqVO apiInfoReqVO) {
         if (null == apiInfoReqVO) return null;
@@ -38,6 +47,30 @@ public class ApiInfoConvertImpl implements ApiInfoConvert {
         if (null == apiInfoDTO) return null;
         ApiInfoListDetailVO apiInfoListDetailVO = new ApiInfoListDetailVO();
         BeanUtil.copyProperties(apiInfoDTO,apiInfoListDetailVO);
+
+        if (ObjectUtil.isNotEmpty(apiInfoDTO.getCreatTime())){
+            apiInfoListDetailVO.setCreatTimeStr(DateUtil.formatDateTime(apiInfoDTO.getCreatTime()));
+        }
+
+
+        if (ObjectUtil.isNotEmpty(apiInfoDTO.getUpdateTime())){
+            apiInfoListDetailVO.setUpdateTimeStr(DateUtil.formatDateTime(apiInfoDTO.getUpdateTime()));
+        }
+
+        Integer appId = apiInfoDTO.getAppId();
+        if (ObjectUtil.isNotEmpty(appId))
+        {
+            ApplicationReqDTO applicationReqDTO = new ApplicationReqDTO();
+            applicationReqDTO.setAppId(appId);
+            ResultDTO<ApplicationDTO> resultDTO = appFeginClient.getOne(applicationReqDTO);
+            if (resultDTO.getSuccess() && ObjectUtil.isNotEmpty(resultDTO.getData()))
+            {
+                ApplicationDTO applicationDTO = resultDTO.getData();
+                String appName = applicationDTO.getAppName();
+                apiInfoListDetailVO.setAppName(appName);
+            }
+        }
+
         return apiInfoListDetailVO;
     }
 }

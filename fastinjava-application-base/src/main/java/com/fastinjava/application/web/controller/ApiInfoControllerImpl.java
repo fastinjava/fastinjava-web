@@ -7,6 +7,7 @@ import com.fastinjava.framework.baseapplication.vo.ApiInfoListDetailVO;
 import com.fastinjava.framework.baseapplication.vo.ApiInfoReqVO;
 import com.fastinjava.framework.common.res.JsonResult;
 import com.fastinjava.framework.common.res.PageResult;
+import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 
+@Api(value = "接口管理",tags = {"接口管理api"})
 @Slf4j
 @RestController
 @RequestMapping("/apiinfo")

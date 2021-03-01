@@ -7,6 +7,7 @@ import com.fastinjava.framework.baseapplication.vo.AppListDetailVO;
 import com.fastinjava.framework.baseapplication.vo.AppListReqVO;
 import com.fastinjava.framework.common.res.JsonResult;
 import com.fastinjava.framework.common.res.PageResult;
+import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
-
+@Api(value = "资源管理", tags = {"资源管理api"})
 @RestController
 @Slf4j
 @RequestMapping("/app")

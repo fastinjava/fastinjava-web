@@ -14,8 +14,11 @@ public class ApiInfoListDetailVO implements Serializable {
     private Integer appId;
     private String needAuth;
     private String deleteFlag;
+    //todo 下个版本改回来
     private Date creatTime;
+    private String creatTimeStr;
     private Date updateTime;
+    private String updateTimeStr;
     private String apiUrl;
     private String appName;
 }
