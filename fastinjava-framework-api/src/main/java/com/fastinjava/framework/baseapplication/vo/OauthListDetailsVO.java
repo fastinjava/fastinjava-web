@@ -4,13 +4,14 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 @Data
 public class OauthListDetailsVO implements Serializable {
     private String clientId;
 
     private String resourceIds;
-
+    private List<String> resourceNameList;
     private String clientSecret;
 
     private String scope;
@@ -50,4 +51,9 @@ public class OauthListDetailsVO implements Serializable {
      * 更新时间
      */
     private Date updateTime;
+
+    private String clientname;
+
+    private List<String> apiCodeList;
+
 }

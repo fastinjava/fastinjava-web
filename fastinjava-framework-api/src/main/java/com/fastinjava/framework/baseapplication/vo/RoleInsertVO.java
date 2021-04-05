@@ -13,6 +13,7 @@ public class RoleInsertVO implements Serializable {
     private String roleDesc;
     private String deleteFlag;
     private String orgId;
+    private String clientId;
     private Date creatTime;
     private Date updateTime;
 }

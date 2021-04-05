@@ -10,11 +10,43 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>fastinjava-framework-api</artifactId>
+
+
+
+
     <dependencies>
+        <dependency>
+            <groupId>com.fastdevelopinjava</groupId>
+            <artifactId>fastdevelopinjava-framework-service-codegen-api</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fastdevelopinjava</groupId>
+            <artifactId>fastdevelopinjava-framework-service-ucenter-api</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fastdevelopinjava</groupId>
+            <artifactId>fastdevelopinjava-framework-service-system-api</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
         <dependency>
             <groupId>com.fastinjava</groupId>
             <artifactId>fastinjava-framework-common</artifactId>
             <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <!--集成swagger以及UI-->
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger2</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger-ui</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.xiaoymin</groupId>
+            <artifactId>swagger-bootstrap-ui</artifactId>
         </dependency>
     </dependencies>
 </project>

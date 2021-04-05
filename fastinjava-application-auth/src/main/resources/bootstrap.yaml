@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: fastinjava-application-auth
+  main:
+    allow-bean-definition-overriding: true # SpringBoot 2.1需要设置
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+        namespace: fastdevelopinjava-biz
+        cluster-name: DEFAULT
+      config:
+        server-addr: 127.0.0.1:8848 # 配置中心地址
+        file-extension: yaml
+        namespace: fastdevelopinjava-biz
+        group: DEFAULT_GROUP
+

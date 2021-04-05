@@ -13,24 +13,43 @@
         <module>fastinjava-framework-common</module>
         <module>fastinjava-framework-utils</module>
         <module>fastinjava-application-base</module>
+        <module>fastinjava-application-auth</module>
     </modules>
 
 
-    <!--阿里镜像源-->
     <repositories>
         <repository>
-            <id>maven-ali</id>
-            <url>http://maven.aliyun.com/nexus/content/groups/public//</url>
+            <id>spring-snapshots</id>
+            <name>Spring Snapshots</name>
+            <url>https://repo.spring.io/snapshot</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>spring-milestones</id>
+            <name>Spring Milestones</name>
+            <url>https://repo.spring.io/milestone</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>central</id>
+            <name>aliyun maven</name>
+            <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+            <layout>default</layout>
+            <!-- 是否开启发布版构件下载 -->
             <releases>
                 <enabled>true</enabled>
             </releases>
+            <!-- 是否开启快照版构件下载 -->
             <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-                <checksumPolicy>fail</checksumPolicy>
+                <enabled>false</enabled>
             </snapshots>
         </repository>
     </repositories>
+
 
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -39,11 +58,13 @@
     </parent>
 
     <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
         <lombok.version>1.16.10</lombok.version>
         <hutool.version>5.0.7</hutool.version>
         <swagger.version>2.8.0</swagger.version>
+        <swagger-bootstrap-ui.version>1.9.2</swagger-bootstrap-ui.version>
         <mockito.version>1.9.5</mockito.version>
     </properties>
 
@@ -86,6 +107,12 @@
                 <groupId>io.springfox</groupId>
                 <artifactId>springfox-swagger-ui</artifactId>
                 <version>${swagger.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.xiaoymin</groupId>
+                <artifactId>swagger-bootstrap-ui</artifactId>
+                <version>${swagger-bootstrap-ui.version}</version>
             </dependency>
 
         </dependencies>

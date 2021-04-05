@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 @Data
 @Builder
@@ -22,4 +23,7 @@ public class RoleListDetailVO implements Serializable {
     private String deleteFlag;
     private Date creatTime;
     private Date updateTime;
+    private String clientId;
+    private String clientName;
+    private List<Integer> menuIdList;
 }

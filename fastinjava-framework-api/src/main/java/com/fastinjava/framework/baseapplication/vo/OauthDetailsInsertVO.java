@@ -4,6 +4,7 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 @Data
 public class OauthDetailsInsertVO implements Serializable {
@@ -22,4 +23,9 @@ public class OauthDetailsInsertVO implements Serializable {
     private String deleteFlag;
     private Date createTime;
     private Date updateTime;
+    private String clientname;
+
+
+    private List<Integer> resourceIdList;
+
 }

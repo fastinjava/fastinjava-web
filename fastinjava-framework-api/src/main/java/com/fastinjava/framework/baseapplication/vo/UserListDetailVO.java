@@ -1,9 +1,12 @@
 package com.fastinjava.framework.baseapplication.vo;
 
+import com.fastdevelopinjava.framework.ucenter.api.dto.RoleDTO;
 import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
+
 
 @Data
 public class UserListDetailVO implements Serializable {
@@ -16,7 +19,7 @@ public class UserListDetailVO implements Serializable {
      * 用户姓名
      */
     private String userName;
-
+    private String password;
     /**
      * 用户昵称
      */
@@ -51,6 +54,8 @@ public class UserListDetailVO implements Serializable {
      * 创建时间
      */
     private Date createdTime;
+
+    private List<RoleDTO> roleDTOList;
 
     private static final long serialVersionUID = 1L;
 }
