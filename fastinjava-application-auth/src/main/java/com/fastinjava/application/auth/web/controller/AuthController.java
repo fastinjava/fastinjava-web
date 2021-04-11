@@ -2,7 +2,6 @@ package com.fastinjava.application.auth.web.controller;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.text.StrBuilder;
-import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONUtil;
@@ -72,7 +71,7 @@ public class AuthController {
                 log.info(JSONUtil.toJsonPrettyStr(accessObj));
 
                 ResultDTO<List<MenuNodeDTO>> listResultDTO = userFeginClient.getUserMenus(new JSONObject().fluentPut("username", username).fluentPut("clientId", clientId));
-                if (listResultDTO.getSuccess() && ObjectUtil.isNotEmpty(listResultDTO.getData())) {
+                if (listResultDTO.getSuccess()) {
                     List<MenuNodeDTO> menuNodeDTOList = listResultDTO.getData();
                     return JsonResult.<JSONObject>builder().success(
                             new JSONObject().fluentPut("accessObj", accessObj).fluentPut("userMenus", menuNodeDTOList)

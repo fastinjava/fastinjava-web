@@ -42,6 +42,14 @@
             <artifactId>spring-boot-configuration-processor</artifactId>
             <scope>provided</scope>
         </dependency>
+
+
+        <dependency>
+            <groupId>com.fastinjava</groupId>
+            <artifactId>fastinjava-framework-common</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
     </dependencies>
 
 </project>

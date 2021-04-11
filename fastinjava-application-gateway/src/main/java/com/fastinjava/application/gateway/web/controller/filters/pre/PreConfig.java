@@ -31,7 +31,7 @@ public class PreConfig {
                                         return gatewayFilterSpec.stripPrefix(1).filters(
 
                                                 new RequestTimeFilter(),
-                                                new FJAddRequestParameterFilter(new FJAddRequestParameterFilter.Config("flag","1")),
+//                                                new FJAddRequestParameterFilter(new FJAddRequestParameterFilter.Config("flag","1")),
                                                 new FJModifyPostBodyFilter(),
                                                 new FJModifyResBodyFilter()
 

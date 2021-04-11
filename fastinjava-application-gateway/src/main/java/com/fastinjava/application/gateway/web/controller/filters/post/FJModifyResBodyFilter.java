@@ -1,6 +1,8 @@
 package com.fastinjava.application.gateway.web.controller.filters.post;
 
+import cn.hutool.core.text.StrBuilder;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
@@ -48,10 +50,18 @@ public class FJModifyResBodyFilter implements GatewayFilter, Ordered {
                         //todo 拦截到的返回体内容，可以随意去操作了
                         log.info("返回体：{}", str);
 
-                        JSONObject jsonObject = JSON.parseObject(str);
-                        jsonObject.fluentPut("reponseId", IdUtil.fastSimpleUUID());
+                        StrBuilder sb = StrBuilder.create(str);
 
-                        String data = JSON.toJSONString(jsonObject);
+                        if (JSONUtil.isJson(str) && JSONUtil.isJsonObj(str)){
+
+                            JSONObject jsonObject = JSON.parseObject(str);
+                            jsonObject.fluentPut("reponseId", IdUtil.fastSimpleUUID());
+
+                            sb.reset().append(JSON.toJSONString(jsonObject));
+
+                        }
+
+                        String data = sb.toString();
 
                         originalResponse.getHeaders().setContentLength(data.getBytes().length);
                         return bufferFactory.wrap(data.getBytes());
