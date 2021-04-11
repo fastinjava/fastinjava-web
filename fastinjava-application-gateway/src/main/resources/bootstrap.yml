@@ -1,0 +1,67 @@
+spring:
+  application:
+    name: fastinjava-application-gateway
+  main:
+    allow-bean-definition-overriding: true # SpringBoot 2.1需要设置
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+        namespace: fastdevelopinjava-biz
+        cluster-name: DEFAULT
+      config:
+        server-addr: 127.0.0.1:8848 # 配置中心地址
+        file-extension: yaml
+        namespace: fastdevelopinjava-biz
+        group: DEFAULT_GROUP
+    gateway:
+#      discovery:
+#        locator:
+#          enabled: true  #开启注册中心路由功能(是否与服务发现组件进行结合，通过serviceId转发到具体服务实例)
+#          lower-case-service-id: true # 是否将服务名转为小写
+      routes:
+#        - id: demo1 # 路由列表元素唯一标志
+##          uri: lb://fastdevelopinjava-service-demo1 # lb://服务名称
+#          uri: http://localhost:50001  # 这里也可以是http的形式
+#          predicates:
+#            - Path=/api/demo1/** # 访问网关时的匹配规则
+#          filters:
+#            - StripPrefix=1 # 命中匹配规则后，是否去掉前缀，1,代表前缀个数，比如说这里http://localhost:50003/gateway/demo1/test1，实际上转发到 http://localhost:50001/demo1/test1
+#            - AddRequestParameter=flag,1
+#            - SetStatus=404
+#            - AddRequestHeader=X-Request-red, blue
+#            - AddRequestHeader=X-Request-red, blue2
+#            - AddResponseHeader=X-Response-Red, Blue2
+#            - AddResponseHeader=X-Response-Red, Blue1
+#            - DedupeResponseHeader=X-Response-Red
+        - id: demo2
+          uri: lb://fastdevelopinjava-service-demo2
+          predicates:
+            - Path=/api/demo2/**
+          filters:
+            - StripPrefix=1
+
+
+        - id: fastdevelopinjava-service-ucenter
+          uri: lb://fastdevelopinjava-service-ucenter
+          predicates:
+            - Path=/api/fastdevelopinjava-service-ucenter/**
+          filters:
+            - StripPrefix=1
+
+        - id: fastdevelopinjava-service-system
+          uri: lb://fastdevelopinjava-service-system
+          predicates:
+            - Path=/api/fastdevelopinjava-service-system/**
+          filters:
+            - StripPrefix=1
+
+        - id: fastdevelopinjava-service-codegen
+          uri: lb://fastdevelopinjava-service-codegen
+          predicates:
+            - Path=/api/fastdevelopinjava-service-codegen/**
+          filters:
+            - StripPrefix=1
+server:
+  servlet:
+    context-path: /api

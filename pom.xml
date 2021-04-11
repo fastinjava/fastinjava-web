@@ -14,6 +14,7 @@
         <module>fastinjava-framework-utils</module>
         <module>fastinjava-application-base</module>
         <module>fastinjava-application-auth</module>
+        <module>fastinjava-application-gateway</module>
     </modules>
 
 
