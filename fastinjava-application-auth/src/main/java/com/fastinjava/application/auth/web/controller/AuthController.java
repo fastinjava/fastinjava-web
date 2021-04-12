@@ -1,22 +1,41 @@
 package com.fastinjava.application.auth.web.controller;
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.text.StrBuilder;
+import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.crypto.asymmetric.RSA;
 import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONUtil;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.fastdevelopinjava.framework.system.api.dto.MenuNodeDTO;
+import com.fastdevelopinjava.framework.system.api.dto.OauthDetailReqDTO;
+import com.fastdevelopinjava.framework.system.api.dto.OauthDetailsDTO;
+import com.fastdevelopinjava.framework.ucenter.api.dto.UserDTO;
+import com.fastdevelopinjava.framework.ucenter.api.dto.UserReqDTO;
 import com.fastdevelopinjava.framework.ucenter.common.res.ResultDTO;
+import com.fastinjava.application.auth.client.OauthInfoFeginClient;
 import com.fastinjava.application.auth.client.UserFeginClient;
 import com.fastinjava.application.auth.constans.AuthConstant;
 import com.fastinjava.framework.common.res.JsonResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.jwt.Jwt;
+import org.springframework.security.jwt.JwtHelper;
+import org.springframework.security.jwt.crypto.sign.RsaSigner;
 import org.springframework.util.Base64Utils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.interfaces.RSAPrivateKey;
+import java.util.Date;
 import java.util.List;
 
 @Slf4j
@@ -35,6 +54,8 @@ public class AuthController {
     @Resource
     private UserFeginClient userFeginClient;
 
+    @Resource
+    private OauthInfoFeginClient oauthInfoFeginClient;
 
     @GetMapping("/test")
     public JsonResult<String> test() {
@@ -56,28 +77,74 @@ public class AuthController {
         Assert.notEmpty(password);
 
         try {
-            HttpResponse response = HttpUtil.createPost(accessUrl())
-                    .header(AuthConstant.authorization, httpbasic(clientId, clientSecret))
-                    .form(
-                            new JSONObject()
-                                    .fluentPut(AuthConstant.GRANT_TYPE, AuthConstant.GRANT_TYPE_PASSWORD)
-                                    .fluentPut("username", username)
-                                    .fluentPut("password", password)
-                    )
-                    .timeout(5000).execute();
-            if (response.isOk()) {
-                String body = response.body();
-                JSONObject accessObj = JSONObject.parseObject(body);
-                log.info(JSONUtil.toJsonPrettyStr(accessObj));
+            OauthDetailReqDTO oauthDetailReqDTO = new OauthDetailReqDTO();
+            oauthDetailReqDTO.setClientId(clientId);
+            ResultDTO<OauthDetailsDTO> clientDetailResultDTO = oauthInfoFeginClient.getOne(oauthDetailReqDTO);
+            ResultDTO<JSONObject> clientDetailExtResultDTO = oauthInfoFeginClient.oauthClientExtinfo(new JSONObject().fluentPut("clientId", clientId));
+            UserReqDTO userReqDTO = new UserReqDTO();
+            userReqDTO.setUserName(username);
+            ResultDTO<UserDTO> userDTOResultDTO = userFeginClient.selectOne(userReqDTO);
 
-                ResultDTO<List<MenuNodeDTO>> listResultDTO = userFeginClient.getUserMenus(new JSONObject().fluentPut("username", username).fluentPut("clientId", clientId));
-                if (listResultDTO.getSuccess()) {
-                    List<MenuNodeDTO> menuNodeDTOList = listResultDTO.getData();
-                    return JsonResult.<JSONObject>builder().success(
-                            new JSONObject().fluentPut("accessObj", accessObj).fluentPut("userMenus", menuNodeDTOList)
-                    ).build();
-                }
-            }
+
+            Assert.isTrue((
+                            clientDetailResultDTO.getSuccess() &&
+                                    ObjectUtil.isNotEmpty(clientDetailResultDTO.getData()) &&
+                                    clientDetailExtResultDTO.getSuccess() &&
+                                    ObjectUtil.isNotEmpty(clientDetailExtResultDTO.getData()) &&
+                                    userDTOResultDTO.getSuccess() &&
+                                    ObjectUtil.isNotEmpty(userDTOResultDTO.getData())
+                    ), "客户端调用接口失败"
+            );
+
+            OauthDetailsDTO oauthDetailsDTO = clientDetailResultDTO.getData();
+            JSONObject oauthDetailsExtDTO = clientDetailExtResultDTO.getData();
+            UserDTO userDTO = userDTOResultDTO.getData();
+
+            BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
+            Assert.isTrue(bCryptPasswordEncoder.matches(clientSecret,oauthDetailsDTO.getClientSecret()),"客户端密码错误");
+            Assert.isTrue(bCryptPasswordEncoder.matches(password,userDTO.getUserEmail()),"用户密码错误");
+
+            String accessKey = oauthDetailsExtDTO.getString("accessKey");
+            String accessSecret = oauthDetailsExtDTO.getString("accessSecret");
+            String privateKeyBase64 = oauthDetailsExtDTO.getString("privateKeyBase64");
+            String publicKeyBase64 = oauthDetailsExtDTO.getString("publicKeyBase64");
+
+            RSA rsa = new RSA(privateKeyBase64, publicKeyBase64);
+            PrivateKey privateKey = rsa.getPrivateKey();
+            PublicKey publicKey = rsa.getPublicKey();
+
+            long expireAt = DateUtil.currentSeconds() + (6 * 60 * 60);
+
+            log.info("expireAt timestamp/s = {},datetime = {}",expireAt,DateUtil.dateNew(
+                    new Date(expireAt * 1000)
+            ));
+
+            Jwt jwt = JwtHelper.encode(
+                    JSONUtil.toJsonStr(
+                            JSON.parseObject(JSON.toJSONString(userDTO))
+                                    .fluentPut("username",username)
+                                    .fluentPut("loginClient",clientId)
+                                    .fluentPut("exp",expireAt)
+                                    .fluentPut("expDatetime",
+                                            DateUtil.formatDateTime(DateUtil.dateNew(
+                                                    new Date(expireAt * 1000)
+                                            ))
+                                    )
+                    ) ,
+                    new RsaSigner((RSAPrivateKey) privateKey));
+
+
+            JSONObject accessObj = new JSONObject();
+
+            String access_token = jwt.getClaims();
+            accessObj.fluentPut("access_token",access_token);
+            accessObj.fluentPut("jti", IdUtil.fastSimpleUUID());
+            log.info(JSONUtil.toJsonPrettyStr(accessObj));
+
+            ResultDTO<List<MenuNodeDTO>> listResultDTO = userFeginClient.getUserMenus(new JSONObject().fluentPut("username", username).fluentPut("clientId", clientId));
+            return JsonResult.<JSONObject>builder().success(
+                    new JSONObject().fluentPut("accessObj", accessObj).fluentPut("userMenus", listResultDTO.getData())
+            ).build();
         } catch (Exception e) {
             log.error(e.getMessage());
         }

@@ -1,5 +1,6 @@
 package com.fastinjava.application.auth.client;
 
+import com.alibaba.fastjson.JSONObject;
 import com.fastdevelopinjava.framework.system.api.dto.*;
 import com.fastdevelopinjava.framework.ucenter.common.res.PageDTO;
 import com.fastdevelopinjava.framework.ucenter.common.res.ResultDTO;
@@ -25,4 +26,9 @@ public interface OauthInfoFeginClient {
 
     @PostMapping(value = "/grantClientApi",name = "给客户端关联api")
     public ResultDTO<Boolean> grantClientApi(@RequestBody GrantClientApiDTO grantClientApiDTO);
+
+
+    @PostMapping("/oauth_client_extinfo")
+    public ResultDTO<JSONObject> oauthClientExtinfo(@RequestBody JSONObject jsonObject);
+
 }
