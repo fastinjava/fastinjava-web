@@ -1,117 +1,91 @@
 package com.fastinjava.application.gateway.web.controller.filters.pre.global;
 
-import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.lang.Dict;
-import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.lang.Assert;
 import cn.hutool.core.text.StrBuilder;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.crypto.SecureUtil;
-import cn.hutool.http.HttpUtil;
+import cn.hutool.crypto.asymmetric.RSA;
+import cn.hutool.json.JSONUtil;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.fastdevelopinjava.framework.ucenter.common.res.ResultDTO;
+import com.fastinjava.application.gateway.client.OauthInfoFeginClient;
+import com.fastinjava.framework.common.consts.FJConstans;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.security.jwt.Jwt;
+import org.springframework.security.jwt.JwtHelper;
+import org.springframework.security.jwt.crypto.sign.RsaVerifier;
 import org.springframework.stereotype.Component;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import javax.annotation.Resource;
 import java.net.URI;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.security.interfaces.RSAPublicKey;
+import java.util.Optional;
 
 @Slf4j
 @Component
-public class VerifyFilter implements GlobalFilter , Ordered {
+public class VerifyFilter implements GlobalFilter, Ordered {
+
+    @Resource
+    private OauthInfoFeginClient oauthInfoFeginClient;
+
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        ServerHttpRequest request = exchange.getRequest();
-        MultiValueMap<String, String> queryParams = request.getQueryParams();
-        URI uri = request.getURI();
-        String query = uri.getQuery();
+        try {
+            ServerHttpRequest request = exchange.getRequest();
+            MultiValueMap<String, String> queryParams = request.getQueryParams();
+            URI uri = request.getURI();
+            String query = uri.getQuery();
+            HttpMethod method = request.getMethod();
 
-        HttpMethod method = request.getMethod();
+            String authorization = Optional.ofNullable(request.getHeaders().get(FJConstans.authorization)).map(authorizations -> authorizations.get(0)).orElseThrow(() -> new RuntimeException("未携带token"));
+            authorization = authorization.substring(FJConstans.bearer.length());
+            //解析并验证token是否合法
+            Jwt jwt = JwtHelper.decode(authorization);
+            JSONObject accessObj = JSON.parseObject(jwt.getClaims());
+            String clientId = accessObj.getString("loginClient");
+            log.info("accessObj = {}", JSONUtil.toJsonPrettyStr(accessObj));
+            ResultDTO<JSONObject> resultDTO = oauthInfoFeginClient.oauthClientExtinfo(new JSONObject().fluentPut("clientId", clientId));
+            Assert.isTrue(resultDTO.getSuccess() && ObjectUtil.isNotEmpty( resultDTO.getData()),"客户端不存在，客户端非法 , clientId = {}",clientId);
+            JSONObject clientExtInfo = resultDTO.getData();
+            String accessKey = clientExtInfo.getString("accessKey");
+            String accessSecret = clientExtInfo.getString("accessSecret");
+            String privateKeyBase64 = clientExtInfo.getString("privateKeyBase64");
+            String publicKeyBase64 = clientExtInfo.getString("publicKeyBase64");
 
-        if (HttpMethod.POST == method) {
+            RSA rsa = new RSA(privateKeyBase64, publicKeyBase64);
 
-        }else if (HttpMethod.GET == method) {
+            //这一步不报错基本上token就是非法的
+            JwtHelper.decodeAndVerify(authorization,new RsaVerifier((RSAPublicKey) rsa.getPublicKey()));
 
-            //AccessKey=5c892285-9b4b-4bd9-92f1-1d4a08b7d533&name=hello&home=world&work=java&age=12&Name=HELLO&nonce=tdegscphnx&timestamp=1618145508&sign=29433F76F5376894D6E1302BB59D36DA
+            long ldistanceTime = DateUtil.currentSeconds() - accessObj.getLong("exp");
+            if (ldistanceTime <= 0 ){
 
-            List<String> accessKey = queryParams.get("AccessKey");
-            List<String> nonce = queryParams.get("nonce");
-            List<String> timestamp = queryParams.get("timestamp");
-            List<String> sign = queryParams.get("sign");
-
-            if (CollectionUtil.isEmpty(accessKey) || CollectionUtil.isEmpty(nonce) || CollectionUtil.isEmpty(timestamp) || CollectionUtil.isEmpty(sign))
-            {
-                throw new RuntimeException("非法请求,未携带AccessKey || nonce  || timestamp || sign ");
             }else {
-                //something
-                Dict dict = new Dict(false);
-                dict.putAll(queryParams);
-                Iterator<String> iterator = dict.keySet().iterator();
-                while (iterator.hasNext()){
-                    String key = (String) iterator.next();
-                    if ("AccessKey".equals(key)  || "sign".equals(key))
-                    {
-                        iterator.remove();
-                        dict.remove(key);
-                    }
-                }
-
-                Dict decryDict = new Dict(false);
-                for (String key : dict.keySet()) {
-                    Object o = dict.get(key);
-                    if (o instanceof List)
-                    {
-                        List oo = (List) o;
-                        decryDict.put(key,(String)oo.get(0));
-                    }
-                }
-
-
-                //按照请求参数名的字母升序排列非空请求参数
-                Set<String> filterKeys = MapUtil.sort(decryDict).keySet().stream().filter(StrUtil::isNotBlank).filter(key -> ObjectUtil.isNotEmpty(decryDict.get(key))).collect(Collectors.toSet());
-
-                HashMap<String, Object> paramMap = new HashMap<>();
-
-                if (CollectionUtil.isNotEmpty(filterKeys)){
-                    for (String filterKey : filterKeys) {
-                        paramMap.put(filterKey,dict.get(filterKey));
-                    }
-                }
-                String sign_S = SecureUtil.md5(StrBuilder.create(HttpUtil.toParams(paramMap)).append("&AccessSecret=").append("123a6a36-2a5d-47da-aa56-08d158135574").toString());
-
-                if (!StrUtil.equals(sign.get(0),sign_S))
-                {
-                    throw new RuntimeException("非法签名");
-                }
-                else {
-                    long ldistanceTime = DateUtil.currentSeconds() - Long.valueOf(timestamp.get(0));
-                    log.info("sign left time = {} 秒" , 30 - ldistanceTime);
-                    if (!(ldistanceTime > 0 && ldistanceTime < 30))
-                    {
-                        throw new RuntimeException("签名过期");
-                    }
-                }
-
+                StrBuilder ldistanceBuilder = StrBuilder.create("token已过期\n");
+                ldistanceBuilder.append("过期时间为 = " + accessObj.getString("expDatetime"));
+                ldistanceBuilder.append("\n");
+                ldistanceBuilder.append("当前时间为 = " + DateUtil.formatDateTime(DateUtil.date()));
+                throw new RuntimeException(ldistanceBuilder.toStringAndReset());
             }
 
-        }
-        else {
 
-        }
+            exchange.getAttributes().put("CURRENT_CLIENT_ID", clientId);
 
-        log.info("query = {}",query);
-        return chain.filter(exchange);
+            return chain.filter(exchange);
+        } catch (Exception e) {
+            log.error("VerifyFilter#filter error , errorMessage = {}", e.getMessage());
+            throw new RuntimeException(StrUtil.format("VerifyFilter#filter error , errorMessage = {}", e.getMessage()));
+        }
     }
 
     /**

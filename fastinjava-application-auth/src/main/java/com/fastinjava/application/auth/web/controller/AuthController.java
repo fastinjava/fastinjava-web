@@ -5,12 +5,8 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.core.text.StrBuilder;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.asymmetric.RSA;
-import cn.hutool.http.HttpResponse;
-import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONUtil;
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.fastdevelopinjava.framework.system.api.dto.MenuNodeDTO;
 import com.fastdevelopinjava.framework.system.api.dto.OauthDetailReqDTO;
@@ -20,7 +16,6 @@ import com.fastdevelopinjava.framework.ucenter.api.dto.UserReqDTO;
 import com.fastdevelopinjava.framework.ucenter.common.res.ResultDTO;
 import com.fastinjava.application.auth.client.OauthInfoFeginClient;
 import com.fastinjava.application.auth.client.UserFeginClient;
-import com.fastinjava.application.auth.constans.AuthConstant;
 import com.fastinjava.framework.common.res.JsonResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -102,7 +97,7 @@ public class AuthController {
 
             BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
             Assert.isTrue(bCryptPasswordEncoder.matches(clientSecret,oauthDetailsDTO.getClientSecret()),"客户端密码错误");
-            Assert.isTrue(bCryptPasswordEncoder.matches(password,userDTO.getUserEmail()),"用户密码错误");
+            Assert.isTrue(bCryptPasswordEncoder.matches(password,userDTO.getPassword()),"用户密码错误");
 
             String accessKey = oauthDetailsExtDTO.getString("accessKey");
             String accessSecret = oauthDetailsExtDTO.getString("accessSecret");
@@ -113,7 +108,7 @@ public class AuthController {
             PrivateKey privateKey = rsa.getPrivateKey();
             PublicKey publicKey = rsa.getPublicKey();
 
-            long expireAt = DateUtil.currentSeconds() + (6 * 60 * 60);
+            long expireAt = DateUtil.currentSeconds() + (5 * 60);
 
             log.info("expireAt timestamp/s = {},datetime = {}",expireAt,DateUtil.dateNew(
                     new Date(expireAt * 1000)
@@ -121,7 +116,10 @@ public class AuthController {
 
             Jwt jwt = JwtHelper.encode(
                     JSONUtil.toJsonStr(
-                            JSON.parseObject(JSON.toJSONString(userDTO))
+                           new JSONObject()
+                                   .fluentPut("email",userDTO.getUserEmail())
+                                   .fluentPut("userId",userDTO.getUserId())
+                                   .fluentPut("userNickName",userDTO.getUserNickName())
                                     .fluentPut("username",username)
                                     .fluentPut("loginClient",clientId)
                                     .fluentPut("exp",expireAt)
@@ -136,7 +134,7 @@ public class AuthController {
 
             JSONObject accessObj = new JSONObject();
 
-            String access_token = jwt.getClaims();
+            String access_token = jwt.getEncoded();
             accessObj.fluentPut("access_token",access_token);
             accessObj.fluentPut("jti", IdUtil.fastSimpleUUID());
             log.info(JSONUtil.toJsonPrettyStr(accessObj));
@@ -146,9 +144,10 @@ public class AuthController {
                     new JSONObject().fluentPut("accessObj", accessObj).fluentPut("userMenus", listResultDTO.getData())
             ).build();
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error("授权失败 error = {} " ,e.getMessage());
+            return JsonResult.<JSONObject>builder().failure(e.getMessage()).build();
         }
-        return JsonResult.<JSONObject>builder().failure("登陆失败").build();
+
 
     }
 

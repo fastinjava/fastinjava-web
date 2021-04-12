@@ -1,6 +1,5 @@
 package com.fastinjava.application.gateway.web.controller.filters.pre;
 
-import com.fastinjava.application.gateway.web.controller.filters.post.FJModifyResBodyFilter;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.GatewayFilterSpec;
@@ -29,12 +28,10 @@ public class PreConfig {
                                     @Override
                                     public UriSpec apply(GatewayFilterSpec gatewayFilterSpec) {
                                         return gatewayFilterSpec.stripPrefix(1).filters(
-
-                                                new RequestTimeFilter(),
+//                                                new RequestTimeFilter(),
 //                                                new FJAddRequestParameterFilter(new FJAddRequestParameterFilter.Config("flag","1")),
-                                                new FJModifyPostBodyFilter(),
-                                                new FJModifyResBodyFilter()
-
+//                                                new FJModifyPostBodyFilter(),
+//                                                new FJModifyResBodyFilter()
                                         );
                                     }
                                 }).uri("http://localhost:50001").id("demo1");
