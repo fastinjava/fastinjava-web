@@ -48,12 +48,12 @@ spring:
             - StripPrefix=1
 
 
-        - id: fastdevelopinjava-service-ucenter
-          uri: lb://fastdevelopinjava-service-ucenter
-          predicates:
-            - Path=/api/fastdevelopinjava-service-ucenter/**
-          filters:
-            - StripPrefix=1
+#        - id: fastdevelopinjava-service-ucenter
+#          uri: lb://fastdevelopinjava-service-ucenter
+#          predicates:
+#            - Path=/api/fastdevelopinjava-service-ucenter/**
+#          filters:
+#            - StripPrefix=1
 
         - id: fastdevelopinjava-service-system
           uri: lb://fastdevelopinjava-service-system
